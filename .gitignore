@@ -29,4 +29,5 @@ ENV/
 *.pot          # Translation files (if unused)
 *.sqlite3      # Default SQLite database
 db.sqlite3
-migrations/    # Optional: Ignore migrations during early dev
+migrations/    # Optional: Ignore migrations during early dev.idea/
+.idea/
