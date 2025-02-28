@@ -15,6 +15,7 @@ import django
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'clueless.settings')
 
+# ProtocolTypeRouter: Splits duties—HTTP for pages, WebSockets for live updates
 application = ProtocolTypeRouter({
     'http': get_asgi_application(),
     'websocket': AuthMiddlewareStack(

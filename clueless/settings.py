@@ -40,7 +40,9 @@ INSTALLED_APPS = [
     'channels', # For WebSockets
     'game', # Clue app
 ]
+
 ASGI_APPLICATION = 'clueless.asgi.application' # Points to ASGI config
+# Use Redis to broadcast 
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
