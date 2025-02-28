@@ -1,0 +1,32 @@
+# macOS-specific files
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+
+# Development tools
+.idea/         # JetBrains IDE (e.g., PyCharm)
+.vscode/       # Visual Studio Code settings
+*.swp          # Vim swap files
+
+# Miscellaneous
+*.bak          # Backup files
+*.backup
+
+# Python/Django files
+__pycache__/
+*.py[cod]      # Compiled Python files
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/           # Virtual environment (if you use one)
+venv/
+ENV/
+
+# Django-specific
+*.log          # Log files
+*.pot          # Translation files (if unused)
+*.sqlite3      # Default SQLite database
+db.sqlite3
+migrations/    # Optional: Ignore migrations during early dev
