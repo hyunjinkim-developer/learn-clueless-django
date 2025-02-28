@@ -32,12 +32,23 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'django.contrib.admin',
-    'django.contrib.auth',
+    'django.contrib.auth',          # For user logins
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',                     # For WebSockets
+    'game',                         # Clue app
 ]
+
+ASGI_APPLICATION = 'clueless.asgi.application' # Channels entry point
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {'hosts': [('127.0.0.1', 6379)]},  # Redis setup
+    },
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

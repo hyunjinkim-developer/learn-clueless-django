@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head><title>Clue Multiplayer</title></head>
+<body>
+    <p>Welcome, {{ request.user.username }}!</p>
+    <div id="messages"></div>
+    <input id="move-input" type="text" placeholder="Enter location">
+    <button onclick="sendMove()">Move</button>
+
+    <script>
+        const gameId = {{ game_id }};
+        const socket = new WebSocket(`ws://localhost:8000/ws/game/${gameId}/`);
+
+        socket.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            document.getElementById('messages').innerHTML += `<p>${data.message}</p>`;
+        };
+
+        function sendMove() {
+            const location = document.getElementById('move-input').value;
+            socket.send(JSON.stringify({'action': 'move', 'location': location}));
+            document.getElementById('move-input').value = '';
+        }
+    </script>
+</body>
+</html>
