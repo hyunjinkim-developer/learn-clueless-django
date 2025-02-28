@@ -11,9 +11,22 @@
         const gameId = {{ game_id }};
         const socket = new WebSocket(`ws://localhost:8000/ws/game/${gameId}/`);
 
+        socket.onopen = function() {
+            console.log('Connected to WebSocket');
+        };
+
         socket.onmessage = function(event) {
+            console.log('Message received:', event.data);
             const data = JSON.parse(event.data);
             document.getElementById('messages').innerHTML += `<p>${data.message}</p>`;
+        };
+
+        socket.onerror = function(error) {
+            console.error('WebSocket error:', error);
+        };
+
+        socket.onclose = function(event) {
+            console.log('WebSocket closed:', event);
         };
 
         function sendMove() {

@@ -29,7 +29,6 @@ ALLOWED_HOSTS = []
 
 
 # Application definition
-
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',          # For user logins
@@ -37,16 +36,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'channels',                     # For WebSockets
-    'game',                         # Clue app
+    'daphne', # Channels’ ASGI server
+    'channels', # For WebSockets
+    'game', # Clue app
 ]
-
-ASGI_APPLICATION = 'clueless.asgi.application' # Channels entry point
-
+ASGI_APPLICATION = 'clueless.asgi.application' # Points to ASGI config
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {'hosts': [('127.0.0.1', 6379)]},  # Redis setup
+        'CONFIG': {'hosts': [('127.0.0.1', 6379)]},
     },
 }
 
