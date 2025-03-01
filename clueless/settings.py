@@ -46,7 +46,7 @@ ASGI_APPLICATION = 'clueless.asgi.application' # Points to ASGI config
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {'hosts': [('127.0.0.1', 6379)]},
+        'CONFIG': {'hosts': [('127.0.0.1', 6379)]}, # Runs on port 6379
     },
 }
 
