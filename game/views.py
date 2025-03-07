@@ -47,6 +47,12 @@ def select_character_view(request, game_id):
         'Mr. Green', 'Mrs. Peacock', 'Prof. Plum'
     ]
     available_characters = [char for char in all_characters if char not in taken_characters]
+
+    # Check if player already has a character for this game
+    player = Player.objects.filter(user=request.user, game=game).first()
+    if player and player.character and player.character in all_characters:
+        return redirect('game', game_id=game_id)
+
     if request.method == 'POST':
         selected_character = request.POST.get('character')
         if selected_character in available_characters:
@@ -60,7 +66,9 @@ def select_character_view(request, game_id):
             }
             player, created = Player.objects.get_or_create(user=request.user, game=game)
             player.character = selected_character
-            player.location = initial_locations.get(selected_character, 'Hallway12')
+            player.location = initial_locations.get(selected_character)
+            if not player.location:
+                player.location = 'Hallway12'
             player.save()
             return redirect('game', game_id=game_id)
         else:
@@ -75,8 +83,15 @@ def select_character_view(request, game_id):
         'available_characters': available_characters
     })
 
+
 def game_view(request, game_id):
-    player = Player.objects.filter(user=request.user, game__game_id=game_id).first()
+    game, _ = Game.objects.get_or_create(game_id=game_id)
+    player = Player.objects.filter(user=request.user, game=game).first()
     if not player or not player.character:
         return redirect('select_character', game_id=game_id)
-    return render(request, 'game/game.html', {'game_id': game_id})
+
+    players = Player.objects.filter(game=game).values('character', 'location', 'has_moved', 'user__username')
+    return render(request, 'game/game.html', {
+        'game_id': game_id,
+        'players': list(players)
+    })

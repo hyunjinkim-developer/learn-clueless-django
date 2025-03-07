@@ -35,11 +35,38 @@
             padding-top: 40px;
             background-color: #f9f9f9;
         }
+        .info-message {
+            color: blue;
+            margin: 10px 0;
+        }
+        .player-list {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+            max-width: 200px;
+        }
+        .player-list h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.2em;
+        }
+        .player-list ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .player-list li {
+            margin: 5px 0;
+        }
     </style>
 </head>
 <body>
     <h1>Clue-Less Game {{ game_id }}</h1>
-    <p>Welcome, {{ request.user.username }}!</p>
+    <p>Welcome, {{ request.user.username }}! <a href="{% url 'logout' %}">Logout</a></p>
+    {% for player in players %}
+        {% if player.user.username == request.user.username and not player.has_moved %}
+            <p class="info-message">Your first move must be from your initial location: {{ player.location }}</p>
+        {% endif %}
+    {% endfor %}
     <div id="messages"></div>
     <input id="move-input" type="text" placeholder="Enter location (e.g., Hallway12)">
     <button onclick="sendMove()">Move</button>
@@ -81,12 +108,46 @@
         <div id="Ballroom" class="room">Ball-room</div>
         <div id="Hallway89" class="hallway"></div> <!-- Ballroom to Kitchen -->
         <div id="Kitchen" class="room">Kitchen</div>
-
     </div>
+
+    <!-- Add player list section -->
+    <div class="player-list">
+        <h3>Players</h3>
+        <ul>
+            {% for player in players %}
+                {% if player.character %}
+                    <li>{{ player.user__username }}: {{ player.character }}</li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+
+
+    <!-- Use json_script to safely render players data -->
+    {{ players|json_script:"players-data" }}
 
     <script>
         const gameId = {{ game_id }};
         const socket = new WebSocket(`ws://localhost:8000/ws/game/${gameId}/`);
+
+        // Get players data from json_script
+        const playersData = JSON.parse(document.getElementById('players-data').textContent);
+
+        function initializeBoard(players) {
+            players.forEach(player => {
+                if (player.character && player.location) {
+                    const element = document.getElementById(player.location);
+                    if (element) element.innerHTML = player.character;
+                }
+            });
+        }
+
+        function updateGameBoard(character, fromLocation, toLocation) {
+            const fromElement = document.getElementById(fromLocation);
+            const toElement = document.getElementById(toLocation);
+            if (fromElement) fromElement.innerHTML = '';
+            if (toElement) toElement.innerHTML = character;
+        }
 
         socket.onmessage = function(event) {
             const data = JSON.parse(event.data);
@@ -106,12 +167,9 @@
             document.getElementById('move-input').value = '';
         }
 
-        function updateGameBoard(character, fromLocation, toLocation) {
-            const fromElement = document.getElementById(fromLocation);
-            const toElement = document.getElementById(toLocation);
-            if (fromElement) fromElement.innerHTML = '';
-            if (toElement) toElement.innerHTML = character;
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeBoard(playersData);
+        });
     </script>
 </body>
 </html>

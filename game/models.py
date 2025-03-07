@@ -8,9 +8,10 @@ class Game(models.Model):
 class Player(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     game = models.ForeignKey(Game, on_delete=models.CASCADE)
-    character = models.CharField(max_length=50, blank=True) # Allow blank until selection
-    location = models.CharField(max_length=50, blank=True) # Allow blank until selection
-    cards = models.JSONField(default=list)  # Clue cards for suggestions/accusations
+    character = models.CharField(max_length=50, blank=True)
+    location = models.CharField(max_length=50, blank=True)
+    cards = models.JSONField(default=list)
+    has_moved = models.BooleanField(default=False)  # Track if player has made their first move
 
     class Meta:
         constraints = [
@@ -19,5 +20,5 @@ class Player(models.Model):
 
 class GameState(models.Model):
     game = models.OneToOneField(Game, on_delete=models.CASCADE)
-    solution = models.JSONField()  # {"character": ..., "weapon": ..., "room": ...}
+    solution = models.JSONField()
     current_turn = models.ForeignKey(Player, null=True, on_delete=models.SET_NULL)

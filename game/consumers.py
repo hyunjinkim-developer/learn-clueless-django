@@ -30,14 +30,27 @@ class GameConsumer(AsyncWebsocketConsumer):
             from_location = await self.get_player_location(player)
             logger.info(f"From: {from_location}, To: {location}") # Debug
 
-            if await self.is_move_valid(player, from_location, location):
-                await self.update_player_location(player, location)
-                await self.channel_layer.group_send(
-                    self.game_group_name,
-                    {'type': 'game_message', 'character': character, 'from': from_location, 'to': location}
-                )
+            if not has_moved:
+                # First move: Ensure they're moving from their initial location
+                if await self.is_move_valid(player, from_location, location):
+                    await self.update_player_location(player, location)
+                    await self.set_player_has_moved(player, True)
+                    await self.channel_layer.group_send(
+                        self.game_group_name,
+                        {'type': 'game_message', 'character': character, 'from': from_location, 'to': location}
+                    )
+                else:
+                    await self.send(text_data=json.dumps({'error': f'First move must be from your initial location ({from_location}) to an adjacent location.'}))
             else:
-                await self.send(text_data=json.dumps({'error': f'Move to {location} not allowed'}))
+                # Subsequent moves
+                if await self.is_move_valid(player, from_location, location):
+                    await self.update_player_location(player, location)
+                    await self.channel_layer.group_send(
+                        self.game_group_name,
+                        {'type': 'game_message', 'character': character, 'from': from_location, 'to': location}
+                    )
+                else:
+                    await self.send(text_data=json.dumps({'error': f'Move to {location} not allowed'}))
 
     async def game_message(self, event):
         await self.send(text_data=json.dumps({
@@ -60,9 +73,19 @@ class GameConsumer(AsyncWebsocketConsumer):
         return Player.objects.get(user__username=username, game__game_id=self.game_id).location
 
     @database_sync_to_async
+    def get_player_has_moved(self, username):
+        return Player.objects.get(user__username=username, game__game_id=self.game_id).has_moved
+
+    @database_sync_to_async
     def update_player_location(self, player, location):
         player_obj = Player.objects.get(user__username=player, game__game_id=self.game_id)
         player_obj.location = location
+        player_obj.save()
+
+    @database_sync_to_async
+    def set_player_has_moved(self, player, value):
+        player_obj = Player.objects.get(user__username=player, game__game_id=self.game_id)
+        player_obj.has_moved = value
         player_obj.save()
 
     @database_sync_to_async
