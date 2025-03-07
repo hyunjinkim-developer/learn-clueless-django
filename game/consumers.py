@@ -28,6 +28,8 @@ class GameConsumer(AsyncWebsocketConsumer):
             player = self.user.username
             character = await self.get_player_character(player)
             from_location = await self.get_player_location(player)
+            has_moved = await self.get_player_has_moved(player)
+
             logger.info(f"From: {from_location}, To: {location}") # Debug
 
             if not has_moved:
