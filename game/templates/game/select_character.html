@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; }
+        .character-form { margin-top: 20px; }
+        .error { color: red; }
+    </style>
+</head>
+<body>
+    <h1>Select Your Character for Game {{ game_id }}</h1>
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% endif %}
+    <form method="post" class="character-form">
+        {% csrf_token %}
+        <label for="character">Choose a character:</label>
+        <select name="character" id="character">
+            {% for char in available_characters %}
+                <option value="{{ char }}">{{ char }}</option>
+            {% empty %}
+                <option disabled>No characters available</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Select Character</button>
+    </form>
+</body>
+</html>

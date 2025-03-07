@@ -1,38 +1,116 @@
 <!DOCTYPE html>
 <html>
-<head><title>Clue Multiplayer</title></head>
+<head>
+    <style>
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(5, 100px); /* 3 rooms + 2 hallways per row */
+            gap: 5px;
+            justify-content: center;
+            background-color: #fff;
+            padding: 10px;
+            border: 2px solid #000;
+        }
+        .room {
+            border: 2px solid #000;
+            width: 100px;
+            height: 100px;
+            text-align: center;
+            padding-top: 40px;
+            background-color: #f0f0f0;
+        }
+        .hallway {
+            border: 2px solid #000;
+            width: 100px;
+            height: 100px;
+            text-align: center;
+            padding-top: 40px;
+            background-color: #e0e0e0;
+        }
+        .vacant {
+            border: 2px dashed #ccc;
+            width: 100px;
+            height: 100px;
+            text-align: center;
+            padding-top: 40px;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
 <body>
+    <h1>Clue-Less Game {{ game_id }}</h1>
     <p>Welcome, {{ request.user.username }}!</p>
     <div id="messages"></div>
-    <input id="move-input" type="text" placeholder="Enter location">
+    <input id="move-input" type="text" placeholder="Enter location (e.g., Hallway12)">
     <button onclick="sendMove()">Move</button>
+    <div id="game-board">
+        <!-- Rooms: 1=Study, 2=Hall, 3=Lounge,
+                    4=Library, 5=Billiard Room, 6=Dining Room,
+                    7=Conservatory, 8=Ballroom, 9=Kitchen -->
+        <!-- Row 1: -->
+        <div id="Study" class="room">Study</div>
+        <div id="Hallway12" class="hallway"></div> <!-- Study to Hall -->
+        <div id="Hall" class="room">Hall</div>
+        <div id="Hallway23" class="hallway"></div> <!-- Hall to Lounge -->
+        <div id="Lounge" class="room">Lounge</div>
+
+        <!-- Row 2: -->
+        <div id="Hallway14" class="hallway"></div> <!-- Study to Library -->
+        <div id="Vacant14-25" class="vacant"></div>
+        <div id="Hallway25" class="hallway"></div> <!-- Hall to Billiard Room -->
+        <div id="Vacant25-36" class="vacant"></div>
+        <div id="Hallway36" class="hallway"></div> <!-- Lounge to Dining Room -->
+
+        <!-- Row 3: -->
+        <div id="Library" class="room">Library</div>
+        <div id="Hallway45" class="hallway"></div> <!-- Library to Billiard Room -->
+        <div id="BilliardRoom" class="room">Billiard Room</div>
+        <div id="Hallway56" class="hallway"></div> <!-- Billiard Room to Dining Room -->
+        <div id="DiningRoom" class="room">Dining Room</div>
+
+        <!-- Row 4: -->
+        <div id="Hallway47" class="hallway"></div> <!-- Library to Conservatory -->
+        <div id="Vacant47-58" class="vacant"></div>
+        <div id="Hallway58" class="hallway"></div> <!-- Billiard Room to Ballroom -->
+        <div id="Vacant58-69" class="vacant"></div>
+        <div id="Hallway69" class="hallway"></div> <!-- Dining Room to Kitchen -->
+
+        <!-- Row 5: -->
+        <div id="Conservatory" class="room">Conservatory</div>
+        <div id="Hallway78" class="hallway"></div> <!-- Conservatory to Ballroom -->
+        <div id="Ballroom" class="room">Ball-room</div>
+        <div id="Hallway89" class="hallway"></div> <!-- Ballroom to Kitchen -->
+        <div id="Kitchen" class="room">Kitchen</div>
+
+    </div>
 
     <script>
         const gameId = {{ game_id }};
         const socket = new WebSocket(`ws://localhost:8000/ws/game/${gameId}/`);
 
-        socket.onopen = function() {
-            console.log('Connected to WebSocket');
-        };
-
         socket.onmessage = function(event) {
-            console.log('Message received:', event.data);
             const data = JSON.parse(event.data);
-            document.getElementById('messages').innerHTML += `<p>${data.message}</p>`;
-        };
-
-        socket.onerror = function(error) {
-            console.error('WebSocket error:', error);
-        };
-
-        socket.onclose = function(event) {
-            console.log('WebSocket closed:', event);
+            if (data.character) {
+                updateGameBoard(data.character, data.from, data.to);
+                document.getElementById('messages').innerHTML += `<p>${data.character} moved from ${data.from} to ${data.to}</p>`;
+            } else if (data.error) {
+                alert(data.error);
+            }
         };
 
         function sendMove() {
             const location = document.getElementById('move-input').value;
-            socket.send(JSON.stringify({'action': 'move', 'location': location}));
+            const message = JSON.stringify({'action': 'move', 'location': location});
+            console.log('Sending:', message);
+            socket.send(message);
             document.getElementById('move-input').value = '';
+        }
+
+        function updateGameBoard(character, fromLocation, toLocation) {
+            const fromElement = document.getElementById(fromLocation);
+            const toElement = document.getElementById(toLocation);
+            if (fromElement) fromElement.innerHTML = '';
+            if (toElement) toElement.innerHTML = character;
         }
     </script>
 </body>
