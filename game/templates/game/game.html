@@ -44,7 +44,7 @@
             padding: 10px;
             border: 1px solid #ccc;
             background-color: #f9f9f9;
-            max-width: 200px;
+            max-width: 300px;
         }
         .player-list h3 {
             margin: 0 0 10px 0;
@@ -110,13 +110,13 @@
         <div id="Kitchen" class="room">Kitchen</div>
     </div>
 
-    <!-- Add player list section -->
+    <!-- Player list section -->
     <div class="player-list">
         <h3>Players</h3>
         <ul>
             {% for player in players %}
                 {% if player.character %}
-                    <li>{{ player.user__username }}: {{ player.character }}</li>
+                    <li>ID: {{player.id}}} | {{ player.user__username }}: {{ player.character }}</li>
                 {% endif %}
             {% endfor %}
         </ul>
@@ -149,11 +149,25 @@
             if (toElement) toElement.innerHTML = character;
         }
 
+        function updatePlayerList(players) {
+        const playerList = document.querySelector('.player-list ul');
+        playerList.innerHTML = ''; // Clear existing list
+        players.forEach(player => {
+            if (player.character) {
+                const li = document.createElement('li');
+                li.textContent = `ID: ${player.id} | ${player.user__username}: ${player.character}`;
+                playerList.appendChild(li);
+            }
+        });
+    }
+
         socket.onmessage = function(event) {
             const data = JSON.parse(event.data);
             if (data.character) {
                 updateGameBoard(data.character, data.from, data.to);
                 document.getElementById('messages').innerHTML += `<p>${data.character} moved from ${data.from} to ${data.to}</p>`;
+            } else if (data.player_list) {
+            updatePlayerList(data.player_list);
             } else if (data.error) {
                 alert(data.error);
             }

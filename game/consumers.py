@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from .models import Game, Player
 import json
 
-# Debugging
+# Debug
 import logging
 logger = logging.getLogger(__name__)
 
@@ -61,6 +61,11 @@ class GameConsumer(AsyncWebsocketConsumer):
             'to': event['to']
         }))
 
+    async def player_list_message(self, event):
+        await self.send(text_data=json.dumps({
+            'player_list': event['player_list']
+        }))
+
     @database_sync_to_async
     def add_player_to_game(self):
         game, _ = Game.objects.get_or_create(game_id=self.game_id)
@@ -89,6 +94,18 @@ class GameConsumer(AsyncWebsocketConsumer):
         player_obj = Player.objects.get(user__username=player, game__game_id=self.game_id)
         player_obj.has_moved = value
         player_obj.save()
+
+    @database_sync_to_async
+    def get_all_players(self):
+        return list(Player.objects.filter(game__game_id=self.game_id).values('id', 'character', 'location', 'has_moved',
+                                                                             'user__username'))
+
+    async def broadcast_player_list(self):
+        players = await self.get_all_players()
+        await self.channel_layer.group_send(
+            self.game_group_name,
+            {'type': 'player_list_message', 'player_list': players}
+        )
 
     @database_sync_to_async
     def is_move_valid(self, player, from_location, to_location):

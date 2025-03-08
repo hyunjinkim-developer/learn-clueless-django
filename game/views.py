@@ -4,6 +4,8 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 from django import forms
 from .models import Game, Player
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 # Custom form for signup
 class SignupForm(forms.Form):
@@ -70,6 +72,17 @@ def select_character_view(request, game_id):
             if not player.location:
                 player.location = 'Hallway12'
             player.save()
+            # Broadcast the updated player list
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f'game_{game_id}',
+                {
+                    'type': 'player_list_message',
+                    'player_list': list(
+                        Player.objects.filter(game=game).values('id', 'character', 'location', 'has_moved',
+                                                                'user__username'))
+                }
+            )
             return redirect('game', game_id=game_id)
         else:
             return render(request, 'game/select_character.html', {
@@ -90,7 +103,7 @@ def game_view(request, game_id):
     if not player or not player.character:
         return redirect('select_character', game_id=game_id)
 
-    players = Player.objects.filter(game=game).values('character', 'location', 'has_moved', 'user__username')
+    players = Player.objects.filter(game=game).values('id', 'character', 'location', 'has_moved', 'user__username')
     return render(request, 'game/game.html', {
         'game_id': game_id,
         'players': list(players)
