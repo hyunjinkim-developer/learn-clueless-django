@@ -12,6 +12,11 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 
+# Debug
+DEBUG = True  # Enable detailed error pages (set to False in production)
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '*']  # Ensure localhost is allowed
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 

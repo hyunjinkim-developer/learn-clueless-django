@@ -3,186 +3,199 @@
 <head>
     <style>
         #game-board {
-            display: grid;
-            grid-template-columns: repeat(5, 100px); /* 3 rooms + 2 hallways per row */
-            gap: 5px;
-            justify-content: center;
-            background-color: #fff;
-            padding: 10px;
-            border: 2px solid #000;
+            display: grid;  /* Use CSS Grid for board layout */
+            grid-template-columns: repeat(5, 100px);  /* 3 rooms + 2 hallways per row: 5 columns of 100px each */
+            gap: 5px;  /* Gap between grid cells */
+            justify-content: center;  /* Center the grid */
+            background-color: #fff;  /* White background */
+            padding: 10px;  /* Padding around the board */
+            border: 2px solid #000;  /* Black border */
         }
         .room {
-            border: 2px solid #000;
-            width: 100px;
-            height: 100px;
-            text-align: center;
-            padding-top: 40px;
-            background-color: #f0f0f0;
+            border: 2px solid #000;  /* Black border for rooms */
+            width: 100px;  /* Fixed width */
+            height: 100px;  /* Fixed height */
+            text-align: center;  /* Center text */
+            padding-top: 40px;  /* Padding for character text */
+            background-color: #f0f0f0;  /* Light gray background */
         }
         .hallway {
-            border: 2px solid #000;
-            width: 100px;
-            height: 100px;
-            text-align: center;
-            padding-top: 40px;
-            background-color: #e0e0e0;
+            border: 2px solid #000;  /* Black border for hallways */
+            width: 100px;  /* Fixed width */
+            height: 100px;  /* Fixed height */
+            text-align: center;  /* Center text */
+            padding-top: 40px;  /* Padding for character text */
+            background-color: #e0e0e0;  /* Slightly darker gray */
         }
         .vacant {
-            border: 2px dashed #ccc;
-            width: 100px;
-            height: 100px;
-            text-align: center;
-            padding-top: 40px;
-            background-color: #f9f9f9;
+            border: 2px dashed #ccc;  /* Dashed border for vacant spaces */
+            width: 100px;  /* Fixed width */
+            height: 100px;  /* Fixed height */
+            text-align: center;  /* Center text */
+            padding-top: 40px;  /* Padding for character text */
+            background-color: #f9f9f9;  /* Very light gray */
         }
         .info-message {
-            color: blue;
-            margin: 10px 0;
+            color: blue;  /* Blue color for info messages */
+            margin: 10px 0;  /* Margin for spacing */
         }
         .player-list {
-            margin-top: 20px;
-            padding: 10px;
-            border: 1px solid #ccc;
-            background-color: #f9f9f9;
-            max-width: 300px;
+            margin-top: 20px;  /* Space above the list */
+            padding: 10px;  /* Padding inside the list */
+            border: 1px solid #ccc;  /* Light gray border */
+            background-color: #f9f9f9;  /* Light background */
+            max-width: 300px;  /* Maximum width to fit content */
         }
         .player-list h3 {
-            margin: 0 0 10px 0;
-            font-size: 1.2em;
+            margin: 0 0 10px 0;  /* Margin for heading */
+            font-size: 1.2em;  /* Slightly larger font */
         }
         .player-list ul {
-            list-style-type: none;
-            padding: 0;
+            list-style-type: none;  /* No bullets */
+            padding: 0;  /* No padding */
         }
         .player-list li {
-            margin: 5px 0;
+            margin: 5px 0;  /* Spacing between list items */
+        }
+        #turn-notification {
+            margin: 10px 0;  /* Space around turn notification */
+            padding: 10px;  /* Padding inside */
+            border: 1px solid #ccc;  /* Light gray border */
+            background-color: #f9f9f9;  /* Light background */
+            text-align: center;  /* Center text */
         }
     </style>
 </head>
 <body>
-    <h1>Clue-Less Game {{ game_id }}</h1>
-    <p>Welcome, {{ request.user.username }}! <a href="{% url 'logout' %}">Logout</a></p>
+    <h1>Clue-Less Game {{ game_id }}</h1>  <!-- Display game ID -->
+    <p>Welcome, {{ request.user.username }}! <a href="{% url 'logout' %}">Logout</a></p>  <!-- Welcome message with logout link -->
     {% for player in players %}
-        {% if player.user.username == request.user.username and not player.has_moved %}
-            <p class="info-message">Your first move must be from your initial location: {{ player.location }}</p>
+        {% if player.user__username == request.user.username and not player.has_moved %}
+            <p class="info-message">Your first move must be from your initial location: {{ player.location }}</p>  <!-- Info for first move -->
         {% endif %}
     {% endfor %}
-    <div id="messages"></div>
-    <input id="move-input" type="text" placeholder="Enter location (e.g., Hallway12)">
-    <button onclick="sendMove()">Move</button>
-    <div id="game-board">
+    <div id="turn-notification">  <!-- Area for turn notifications -->
+        <strong id="turn-message">Waiting for turn assignment...</strong>  <!-- Default turn message -->
+    </div>
+    <div id="messages"></div>  <!-- Area for move messages -->
+    <input id="move-input" type="text" placeholder="Enter location (e.g., Hallway1)">  <!-- Input for move location, updated placeholder -->
+    <button onclick="sendMove()">Move</button>  <!-- Button to submit move -->
+    <div id="game-board">  <!-- Game board grid -->
         <!-- Rooms: 1=Study, 2=Hall, 3=Lounge,
                     4=Library, 5=Billiard Room, 6=Dining Room,
                     7=Conservatory, 8=Ballroom, 9=Kitchen -->
+
         <!-- Row 1: -->
-        <div id="Study" class="room">Study</div>
-        <div id="Hallway12" class="hallway"></div> <!-- Study to Hall -->
-        <div id="Hall" class="room">Hall</div>
-        <div id="Hallway23" class="hallway"></div> <!-- Hall to Lounge -->
-        <div id="Lounge" class="room">Lounge</div>
+        <div id="Study" class="room">Study</div>  <!-- Study -->
+        <div id="Hallway1" class="hallway"></div>  <!-- Study to Hall -->
+        <div id="Hall" class="room">Hall</div>  <!-- Hall -->
+        <div id="Hallway2" class="hallway"></div>  <!-- Hall to Lounge -->
+        <div id="Lounge" class="room">Lounge</div>  <!-- Lounge -->
 
         <!-- Row 2: -->
-        <div id="Hallway14" class="hallway"></div> <!-- Study to Library -->
-        <div id="Vacant14-25" class="vacant"></div>
-        <div id="Hallway25" class="hallway"></div> <!-- Hall to Billiard Room -->
-        <div id="Vacant25-36" class="vacant"></div>
-        <div id="Hallway36" class="hallway"></div> <!-- Lounge to Dining Room -->
+        <div id="Hallway3" class="hallway"></div>  <!-- Study to Library -->
+        <div id="Vacant1" class="vacant"></div>
+        <div id="Hallway4" class="hallway"></div>  <!-- Hall to Billiard Room -->
+        <div id="Vacant2" class="vacant"></div>
+        <div id="Hallway5" class="hallway"></div>  <!-- Lounge to Dining Room -->
 
         <!-- Row 3: -->
         <div id="Library" class="room">Library</div>
-        <div id="Hallway45" class="hallway"></div> <!-- Library to Billiard Room -->
+        <div id="Hallway6" class="hallway"></div>  <!-- Library to Billiard Room -->
         <div id="BilliardRoom" class="room">Billiard Room</div>
-        <div id="Hallway56" class="hallway"></div> <!-- Billiard Room to Dining Room -->
+        <div id="Hallway7" class="hallway"></div>  <!-- Billiard Room to Dining Room -->
         <div id="DiningRoom" class="room">Dining Room</div>
 
         <!-- Row 4: -->
-        <div id="Hallway47" class="hallway"></div> <!-- Library to Conservatory -->
-        <div id="Vacant47-58" class="vacant"></div>
-        <div id="Hallway58" class="hallway"></div> <!-- Billiard Room to Ballroom -->
-        <div id="Vacant58-69" class="vacant"></div>
-        <div id="Hallway69" class="hallway"></div> <!-- Dining Room to Kitchen -->
+        <div id="Hallway8" class="hallway"></div>  <!-- Library to Conservatory -->
+        <div id="Vacant3" class="vacant"></div>
+        <div id="Hallway9" class="hallway"></div>  <!-- Billiard Room to Ballroom -->
+        <div id="Vacant4" class="vacant"></div>
+        <div id="Hallway10" class="hallway"></div>  <!-- Dining Room to Kitchen -->
 
         <!-- Row 5: -->
         <div id="Conservatory" class="room">Conservatory</div>
-        <div id="Hallway78" class="hallway"></div> <!-- Conservatory to Ballroom -->
+        <div id="Hallway11" class="hallway"></div> <!-- Conservatory to Ballroom -->
         <div id="Ballroom" class="room">Ball-room</div>
-        <div id="Hallway89" class="hallway"></div> <!-- Ballroom to Kitchen -->
+        <div id="Hallway12" class="hallway"></div> <!-- Ballroom to Kitchen -->
         <div id="Kitchen" class="room">Kitchen</div>
     </div>
 
     <!-- Player list section -->
     <div class="player-list">
-        <h3>Players</h3>
-        <ul>
+        <h3>Players</h3>  <!-- Heading for player list -->
+        <ul>  <!-- Unordered list for players -->
             {% for player in players %}
                 {% if player.character %}
-                    <li>ID: {{player.id}}} | {{ player.user__username }}: {{ player.character }}</li>
+                    <li>ID: {{ player.id }} | {{ player.user__username }}: {{ player.character }}</li>  <!-- List item with ID, username, and character -->
                 {% endif %}
             {% endfor %}
         </ul>
     </div>
 
-
-    <!-- Use json_script to safely render players data -->
-    {{ players|json_script:"players-data" }}
+    {{ players|json_script:"players-data" }}  <!-- Serialize players data for JavaScript -->
 
     <script>
-        const gameId = {{ game_id }};
-        const socket = new WebSocket(`ws://localhost:8000/ws/game/${gameId}/`);
+        const gameId = {{ game_id }};  // Game ID from template
+        const socket = new WebSocket(`ws://localhost:8000/ws/game/${gameId}/`);  // WebSocket connection
 
-        // Get players data from json_script
-        const playersData = JSON.parse(document.getElementById('players-data').textContent);
+        const playersData = JSON.parse(document.getElementById('players-data').textContent);  // Parse initial players data
 
-        function initializeBoard(players) {
+        function initializeBoard(players) {  // Initialize the game board with players
             players.forEach(player => {
                 if (player.character && player.location) {
-                    const element = document.getElementById(player.location);
-                    if (element) element.innerHTML = player.character;
+                    const element = document.getElementById(player.location);  // Get the DOM element for the location
+                    if (element) element.innerHTML = player.character;  // Set character in location
                 }
             });
         }
 
-        function updateGameBoard(character, fromLocation, toLocation) {
-            const fromElement = document.getElementById(fromLocation);
-            const toElement = document.getElementById(toLocation);
-            if (fromElement) fromElement.innerHTML = '';
-            if (toElement) toElement.innerHTML = character;
+        function updateGameBoard(character, fromLocation, toLocation) {  // Update board for moves
+            const fromElement = fromLocation ? document.getElementById(fromLocation) : null;  // Get from location element, null if empty
+            const toElement = document.getElementById(toLocation);  // Get to location element
+            if (fromElement) fromElement.innerHTML = '';  // Clear from location if it exists
+            if (toElement) toElement.innerHTML = character;  // Set character in to location
         }
 
-        function updatePlayerList(players) {
-        const playerList = document.querySelector('.player-list ul');
-        playerList.innerHTML = ''; // Clear existing list
-        players.forEach(player => {
-            if (player.character) {
-                const li = document.createElement('li');
-                li.textContent = `ID: ${player.id} | ${player.user__username}: ${player.character}`;
-                playerList.appendChild(li);
-            }
-        });
-    }
+        function updatePlayerList(players) {  // Update the player list
+            const playerList = document.querySelector('.player-list ul');  // Get the ul element
+            playerList.innerHTML = '';  // Clear existing list
+            players.forEach(player => {
+                if (player.character) {
+                    const li = document.createElement('li');  // Create new list item
+                    li.textContent = `ID: ${player.id} | ${player.user__username}: ${player.character}`;  // Set text
+                    playerList.appendChild(li);  // Add to list
+                }
+            });
+        }
 
-        socket.onmessage = function(event) {
-            const data = JSON.parse(event.data);
-            if (data.character) {
-                updateGameBoard(data.character, data.from, data.to);
-                document.getElementById('messages').innerHTML += `<p>${data.character} moved from ${data.from} to ${data.to}</p>`;
-            } else if (data.player_list) {
-            updatePlayerList(data.player_list);
-            } else if (data.error) {
-                alert(data.error);
+        socket.onmessage = function(event) {  // Handle WebSocket messages
+            const data = JSON.parse(event.data);  // Parse incoming data
+            if (data.character) {  // Handle move updates
+                updateGameBoard(data.character, data.from, data.to);  // Update board
+                document.getElementById('messages').innerHTML += `<p>${data.character} moved from ${data.from || 'N/A'} to ${data.to}</p>`;  // Log move
+            } else if (data.player_list) {  // Handle player list updates
+                updatePlayerList(data.player_list);  // Update player list
+            } else if (data.turn) {  // Handle turn notifications
+                const turnMessage = document.getElementById('turn-message');  // Get turn message element
+                turnMessage.textContent = data.turn;  // Update turn text
+                // Future: Highlight current user's turn (e.g., turnMessage.style.color = data.turn.includes(currentUsername) ? 'green' : 'gray')
+            } else if (data.error) {  // Handle errors
+                alert(data.error);  // Show error alert
             }
         };
 
-        function sendMove() {
-            const location = document.getElementById('move-input').value;
-            const message = JSON.stringify({'action': 'move', 'location': location});
-            console.log('Sending:', message);
-            socket.send(message);
-            document.getElementById('move-input').value = '';
+        function sendMove() {  // Send move request to server
+            const location = document.getElementById('move-input').value;  // Get input value
+            const message = JSON.stringify({'action': 'move', 'location': location});  // Create JSON message
+            console.log('Sending:', message);  // Log for debugging
+            socket.send(message);  // Send to server
+            document.getElementById('move-input').value = '';  // Clear input
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeBoard(playersData);
+        document.addEventListener('DOMContentLoaded', () => {  // Run on page load
+            initializeBoard(playersData);  // Set up initial board
+            updatePlayerList(playersData);  // Set up initial player list
         });
     </script>
 </body>
