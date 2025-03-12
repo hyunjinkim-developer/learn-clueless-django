@@ -52,7 +52,7 @@ def select_character_view(request, game_id):
     print(f"Taken characters: {taken_characters}")  # Log taken characters
     all_characters = [
         'Miss Scarlet', 'Col. Mustard', 'Mrs. White',
-        'Mr. Green', 'Mrs. Peacock', 'Prof. Plum'  # Added Mrs. Peacock
+        'Mr. Green', 'Mrs. Peacock', 'Prof. Plum'
     ]  # List of all possible characters
     available_characters = [char for char in all_characters if char not in taken_characters]  # Filter available characters
     print(f"Available characters: {available_characters}")  # Log available characters

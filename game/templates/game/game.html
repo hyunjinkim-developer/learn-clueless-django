@@ -1,26 +1,51 @@
 <!DOCTYPE html>
 <html>
 <style>
+    * { /* Global reset for consistent box model */
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
     :root { /* Define global CSS variables */
         --room-hallway-name-font-size: 25px;
         --room-hallway-character-font-size: 20px;
+        --cell-size: calc(10 * var(--room-hallway-character-font-size));
+    }
+    body {
+        margin: 0; /* Remove default margin */
+        padding: 0; /* Remove default padding */
+        height: auto; /* Allow natural height with scrolling */
+        display: block; /* Remove flex for simplicity */
+        overflow-y: auto; /* Enable vertical scrolling */
+        font-family: Arial, sans-serif; /* Basic font for consistency */
+    }
+    #notification {
+        padding: 2px; /* Consistent padding */
+        max-height: 200px; /* Limit notification height to prevent excessive scrolling */
+        overflow-y: auto; /* Add scrollbar if content exceeds height */
     }
     #game-board {
         display: grid;  /* Use CSS Grid for board layout */
-        grid-template-columns: repeat(5, 1fr);  /* 5 columns with equal fractions */
+        grid-template-columns: repeat(5, var(--cell-size));  /* 5 columns, each 200px */
+        grid-template-rows: repeat(5, var(--cell-size));  /* 5 rows, each 200px */
         gap: 5px;  /* Gap between grid cells */
-        justify-content: center;  /* Center the grid */
         background-color: #fff;  /* White background */
         padding: 10px;  /* Padding around the board */
         border: 2px solid #000;  /* Black border */
+        margin: 0 auto; /* Center the board horizontally */
+        max-width: fit-content; /* Prevent excessive width */
     }
     .room, .hallway, .vacant {
+        width: var(--cell-size);  /* Fixed width: 200px */
+        height: var(--cell-size);  /* Fixed height: 200px */
         border: 2px solid #000;  /* Unified border for all */
-        width: 100%;  /* Full width of the grid column */
-        aspect-ratio: 1;  /* Ensures height equals width for a square */
         text-align: center;  /* Center text */
         position: relative;  /* Enable positioning for internal elements */
         box-sizing: border-box;  /* Include border and padding in the height/width calculation */
+        cursor: pointer; /* Indicate clickable areas */
+    }
+    .room:hover, .hallway:hover {
+        background-color: #e0e0e0; /* Light gray hover effect to indicate clickability */
     }
     .room-characters span, .hallway-characters span {
         white-space: nowrap;  /* Prevent character names from splitting across lines */
@@ -37,10 +62,11 @@
         background-color: hotpink;
     }
     .room-characters {
-        font-size: var(--room-hallway-character-font-size);  /* Font for character list */
-        padding: 2px;  /* Padding for characters */
-        overflow-y: auto;  /* Enable scrolling if multiple characters exceed height */
-        white-space: pre-line;  /* Preserve newlines for line-by-line display */
+        font-size: var(--room-hallway-character-font-size);
+        padding: 2px;
+        overflow-y: auto;  /* Add scrollbar if content exceeds height */
+        white-space: pre-line;
+        max-height: calc(var(--cell-size) - 40px);
     }
     .hallway {
         background-color: lightcyan;
@@ -52,35 +78,18 @@
         background-color: lightskyblue;
     }
     .hallway-characters {
-        font-size: var(--room-hallway-character-font-size);  /* Fixed syntax error: Font for character list */
-        padding: 2px;  /* Padding for characters */
-        overflow-y: auto;  /* Enable scrolling if needed */
-        white-space: pre-line;  /* Preserve newlines for line-by-line display */
+        font-size: var(--room-hallway-character-font-size);
+        padding: 2px;
+        overflow-y: auto;  /* Add scrollbar if content exceeds height */
+        white-space: pre-line;
+        max-height: calc(var(--cell-size) - 40px);
     }
     .vacant {
-        background-color: white;  /* White background */
+        background-color: white;
     }
     .info-message {
         color: blue;  /* Blue color for info messages */
         margin: 10px 0;  /* Margin for spacing */
-    }
-    .player-list {
-        margin-top: 20px;  /* Space above the list */
-        padding: 10px;  /* Padding inside the list */
-        border: 1px solid #ccc;  /* Light gray border */
-        background-color: #f9f9f9;  /* Light background */
-        max-width: 300px;  /* Maximum width to fit content */
-    }
-    .player-list h3 {
-        margin: 0 0 10px 0;  /* Margin for heading */
-        font-size: 1.2em;  /* Slightly larger font */
-    }
-    .player-list ul {
-        list-style-type: none;  /* No bullets */
-        padding: 0;  /* No padding */
-    }
-    .player-list li {
-        margin: 5px 0;  /* Spacing between list items */
     }
     #turn-notification {
         margin: 10px 0;  /* Space around turn notification */
@@ -107,19 +116,18 @@
 <head>
 </head>
 <body>
-    <h1>Clue-Less Game {{ game_id }}</h1>  <!-- Display game ID -->
-    <p>Welcome, {{ request.user.username }}! <a href="{% url 'logout' %}">Logout</a></p>  <!-- Welcome message with logout link -->
-    {% for player in players %}
-        {% if player.user__username == request.user.username and not player.has_moved %}
-            <p class="info-message">Your first move must be from your initial location: {{ player.location }}</p>  <!-- Info for first move -->
-        {% endif %}
-    {% endfor %}
-    <div id="turn-notification">  <!-- Area for turn notifications -->
-        <strong id="turn-message">Waiting for turn assignment...</strong>  <!-- Default turn message -->
+    <div id="notification">
+        <p>Clue-Less Game {{ game_id }} Welcome, {{ request.user.username }}! <a href="{% url 'logout' %}">Logout</a></p>  <!-- Display game ID Welcome message with logout link -->
+        {% for player in players %}
+            {% if player.user__username == request.user.username and not player.has_moved %}
+                <p class="info-message">Your first move must be from your initial location: {{ player.location }}</p>  <!-- Info for first move -->
+            {% endif %}
+        {% endfor %}
+        <div id="turn-notification">  <!-- Area for turn notifications -->
+            <strong id="turn-message">Waiting for turn assignment...</strong>  <!-- Default turn message -->
+        </div>
     </div>
-    <div id="messages"></div>  <!-- Area for move messages -->
-    <input id="move-input" type="text" placeholder="Enter location (e.g., Hallway1)">  <!-- Input for move location, updated placeholder -->
-    <button onclick="sendMove()">Move</button>  <!-- Button to submit move -->
+
     <div id="game-board">  <!-- Game board grid -->
         <!-- Rooms: 1=Study, 2=Hall, 3=Lounge,
                     4=Library, 5=Billiard Room, 6=Dining Room,
@@ -224,17 +232,6 @@
         </div>
     </div>
 
-    <!-- Player list section -->
-    <div class="player-list">
-        <h3>Players</h3>  <!-- Heading for player list -->
-        <ul>  <!-- Unordered list for players -->
-            {% for player in players %}
-                {% if player.character %}
-                    <li>ID: {{ player.id }} | {{ player.user__username }}: {{ player.character }}</li>  <!-- List item with ID, username, and character -->
-                {% endif %}
-            {% endfor %}
-        </ul>
-    </div>
 
     {{ players|json_script:"players-data" }}  <!-- Serialize players data for JavaScript -->
     {% if request.user.is_authenticated %}
@@ -249,42 +246,30 @@
     const currentUsernameElement = document.getElementById('current-username');
     const currentUsername = currentUsernameElement ? JSON.parse(currentUsernameElement.textContent) : '';  // Fallback to empty string if null
 
+    let currentPlayer = null; // Store the current player's data
+
     function initializeBoard(players) {  // Initialize the game board with players
             updateRoomCharacters(players);  // Update room characters on load
             updateHallwayCharacters(players);  // Update hallway characters on load
-            setSquareDimensions();  // Set initial square dimensions
+            currentPlayer = players.find(player => player.user__username === currentUsername); // Set current player
+            addClickListeners(); // Add click listeners to rooms and hallways
         }
 
     function updateGameBoard(character, fromLocation, toLocation, players) {  // Update board for moves, with latest players data
-        // Update the from location to remove the character
-        if (fromLocation) {
-            const fromElement = document.getElementById(fromLocation);
-            if (fromElement && fromElement.classList.contains('room')) {
-                updateRoomCharacters(players);  // Update room characters
-            } else if (fromElement && fromElement.classList.contains('hallway')) {
-                updateHallwayCharacters(players);  // Update hallway characters
-            }
-        }
-        // Update the to location to add the character
+        console.log(`Updating board: ${character} from ${fromLocation} to ${toLocation}`); // Debug log
+        // Always update both from and to locations using the latest players data
+        updateRoomCharacters(players);  // Update all rooms
+        updateHallwayCharacters(players);  // Update all hallways
         const toElement = document.getElementById(toLocation);
-        if (toElement && toElement.classList.contains('room')) {
-            updateRoomCharacters(players);  // Update room characters
+        if (toElement && (toElement.classList.contains('room') || toElement.classList.contains('hallway'))) {
             const charElement = document.getElementById(`${toLocation}-characters`); // Get the character element
-                if (charElement) {
+            if (charElement) {
                 charElement.classList.remove('fade-move');  // Reset animation
                 void charElement.offsetWidth;  // Trigger reflow to restart animation
                 charElement.classList.add('fade-move');  // Apply the animation
             }
-        } else if (toElement && toElement.classList.contains('hallway')) {
-            updateHallwayCharacters(players);  // Update hallway characters
-            const charElement = document.getElementById(`${toLocation}-characters`);  // Get the character element
-                if (charElement) {
-                    charElement.classList.remove('fade-move');  // Reset animation
-                    void charElement.offsetWidth;  // Trigger reflow to restart animation
-                    charElement.classList.add('fade-move');  // Apply the animation
-                }
         }
-        setSquareDimensions();  // Update square dimensions after move
+        currentPlayer = players.find(player => player.user__username === currentUsername); // Update current player location
     }
 
     function updateRoomCharacters(players) {  // Update characters in rooms
@@ -313,69 +298,93 @@
             });
     }
 
-    function updatePlayerList(players) {  // Update the player list
-            const playerList = document.querySelector('.player-list ul');  // Get the ul element
-            playerList.innerHTML = '';  // Clear existing list
-            players.forEach(player => {
-                if (player.character) {
-                    const li = document.createElement('li');  // Create new list item
-                    li.textContent = `ID: ${player.id} | ${player.user__username}: ${player.character}`;  // Set text
-                    playerList.appendChild(li);  // Add to list
+    function addClickListeners() {  // Add click listeners to rooms and hallways
+        const rooms = document.querySelectorAll('.room');
+        const hallways = document.querySelectorAll('.hallway');
+        const clickableElements = [...rooms, ...hallways];
+
+        clickableElements.forEach(element => {
+            element.addEventListener('click', () => {
+                const location = element.id; // Get the ID of the clicked element
+                if (currentPlayer && isValidMove(currentPlayer.location, location)) {
+                    const message = JSON.stringify({'action': 'move', 'location': location});
+                    console.log('Sending:', message);  // Log the message for debugging
+                    socket.send(message);  // Send move request to server
+                } else {
+                    console.log('Invalid move or not your turn for location:', location);
                 }
             });
+        });
+    }
+
+    function isValidMove(fromLocation, toLocation) {
+        // Check if it's the current player's turn (simplified logic)
+        const turnMessage = document.getElementById('turn-message').textContent;
+        if (!turnMessage.includes(currentUsername)) {
+            return false; // Not your turn
         }
 
-    function setSquareDimensions() {  // Set height to match width for square layout
-            const rooms = document.querySelectorAll('.room');
-            const hallways = document.querySelectorAll('.hallway');
-            const vacants = document.querySelectorAll('.vacant');
-            const allElements = [...rooms, ...hallways, ...vacants];
-            let maxWidth = 0;
+        // Define valid moves based on adjacency (simplified from consumers.py)
+        const validMoves = {
+            'Study': ['Hallway1', 'Hallway3', 'Kitchen'],
+            'Hall': ['Hallway1', 'Hallway2', 'Hallway4'],
+            'Lounge': ['Hallway2', 'Hallway5', 'Conservatory'],
+            'Library': ['Hallway3', 'Hallway6', 'Hallway8'],
+            'BilliardRoom': ['Hallway4', 'Hallway6', 'Hallway7', 'Hallway9'],
+            'DiningRoom': ['Hallway5', 'Hallway7', 'Hallway10'],
+            'Conservatory': ['Hallway8', 'Hallway11', 'Lounge'],
+            'Ballroom': ['Hallway9', 'Hallway11', 'Hallway12'],
+            'Kitchen': ['Hallway10', 'Hallway12', 'Study'],
+            'Hallway1': ['Study', 'Hall'],
+            'Hallway2': ['Hall', 'Lounge'],
+            'Hallway3': ['Study', 'Library'],
+            'Hallway4': ['Hall', 'BilliardRoom'],
+            'Hallway5': ['Lounge', 'DiningRoom'],
+            'Hallway6': ['Library', 'BilliardRoom'],
+            'Hallway7': ['BilliardRoom', 'DiningRoom'],
+            'Hallway8': ['Library', 'Conservatory'],
+            'Hallway9': ['BilliardRoom', 'Ballroom'],
+            'Hallway10': ['DiningRoom', 'Kitchen'],
+            'Hallway11': ['Conservatory', 'Ballroom'],
+            'Hallway12': ['Ballroom', 'Kitchen']
+        };
 
-            allElements.forEach(element => {
-                const computedStyle = getComputedStyle(element);
-                const width = element.getBoundingClientRect().width;  // Get the actual rendered width
-                maxWidth = Math.max(maxWidth, width);  // Update maxWidth if this is wider
-            });
-
-            // Apply the maximum width as height to all elements for a square shape
-            allElements.forEach(element => {
-                element.style.height = `${maxWidth}px`;  // Set height to match width
-            });
-        }
+        return fromLocation && toLocation && validMoves[fromLocation] && validMoves[fromLocation].includes(toLocation);
+    }
 
     socket.onmessage = function(event) {  // Handle WebSocket messages
             const data = JSON.parse(event.data);  // Parse the incoming JSON data
             console.log('Received WebSocket message:', data);  // Log received message for debugging
             if (data.character) {  // Handle move updates
                 updateGameBoard(data.character, data.from, data.to, data.player_list || playersData);  // Update board with latest players data
-                document.getElementById('messages').innerHTML += `<p>${data.character} moved from ${data.from || 'N/A'} to ${data.to}</p>`;  // Add move message
             } else if (data.player_list) {  // Handle player list updates
-                updatePlayerList(data.player_list);  // Update player list
                 updateRoomCharacters(data.player_list);  // Update room characters with new player list
                 updateHallwayCharacters(data.player_list);  // Update hallway characters with new player list
             } else if (data.turn) {  // Handle turn notifications
-                const turnMessage = document.getElementById('turn-message');  // Get turn message element
-                turnMessage.textContent = data.turn;  // Update turn text
-                turnMessage.style.color = data.turn.includes(currentUsername) ? 'green' : 'gray';  // Highlight current user's turn
-            } else if (data.error) {  // Handle errors
+            const turnMessage = document.getElementById('turn-notification');  // Get turn notification element
+            turnMessage.innerHTML = `<strong>${data.turn}</strong>`;  // Update turn text with strong tag for emphasis
+            turnMessage.style.color = data.turn.includes(currentUsername) ? 'green' : 'gray';  // Highlight current user's turn
+        } else if (data.error) {  // Handle errors
                 alert(data.error);  // Show error alert
             }
         };
 
-    function sendMove() {  // Send move request to server
-            const location = document.getElementById('move-input').value;  // Get the location from the input
-            const message = JSON.stringify({'action': 'move', 'location': location});  // Create a JSON message
-            console.log('Sending:', message);  // Log the message for debugging
-            socket.send(message);  // Send to server
-            document.getElementById('move-input').value = '';  // Clear the input field
-        }
+    // Add basic WebSocket error handling
+    socket.onopen = function() {
+        console.log('WebSocket Connected');
+    };
+    socket.onerror = function(error) {
+        console.error('WebSocket Error:', error);
+        alert('Connection error occurred. Please try again.');
+    };
+    socket.onclose = function() {
+        console.log('WebSocket Closed');
+        alert('Connection closed. Reconnecting might be needed.');
+    };
 
-        document.addEventListener('DOMContentLoaded', () => {  // Run on page load
-            initializeBoard(playersData);  // Set up initial board
-            updatePlayerList(playersData);  // Set up initial player list
-            setSquareDimensions();  // Set initial square dimensions
-        });
+    document.addEventListener('DOMContentLoaded', () => {  // Run on page load
+        initializeBoard(playersData);
+    });
 </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'91f1c7f3cb5ebfb8',t:'MTc0MTc2NjY2OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
