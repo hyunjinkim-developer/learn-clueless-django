@@ -159,6 +159,13 @@ class GameConsumer(AsyncWebsocketConsumer):
                 {'type': 'turn_message', 'turn': f"It’s {player['user__username']}'s turn"}  # Send turn message
             )
 
+    async def broadcast_player_list(self):
+        players = await self.get_all_players()  # Fetch all players' data
+        await self.channel_layer.group_send(
+            self.game_group_name,
+            {'type': 'player_list_message', 'player_list': players}  # Broadcast player list to all clients
+        )  # Send updated player list to all connected clients
+
     @database_sync_to_async
     def get_player_by_id(self, player_id):
         return Player.objects.filter(id=player_id, game__game_id=self.game_id).values('id', 'character', 'location', 'has_moved', 'user__username').first()  # Get player by ID
