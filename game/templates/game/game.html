@@ -2,6 +2,9 @@
 <html>
 <head>
     <style>
+        :root { /* Define a global CSS variable */
+            --room-hallway-name-font-size: 12px;
+        }
         #game-board {
             display: grid;  /* Use CSS Grid for board layout */
             grid-template-columns: repeat(5, 100px);  /* 5 columns of 100px each */
@@ -20,7 +23,7 @@
             position: relative;  /* Enable positioning for internal elements */
         }
         .room-name {
-            font-size: 12px;  /* Smaller font for room name */
+            font-size: var(--room-hallway-name-font-size);  /* Smaller font for room name */
             font-weight: bold;  /* Bold text for emphasis */
             padding: 5px 0;  /* Padding for spacing */
             background-color: #d0d0d0;  /* Slightly darker background for name */
@@ -40,7 +43,7 @@
             position: relative;  /* Enable positioning for internal elements */
         }
         .hallway-name {
-            font-size: 10px;  /* Smaller font for hallway name */
+            font-size: var(--room-hallway-name-font-size);  /* Smaller font for hallway name */
             font-weight: bold;  /* Bold text for emphasis */
             padding: 5px 0;  /* Padding for spacing */
             background-color: #c0c0c0;  /* Slightly darker background for name */
@@ -54,10 +57,10 @@
         .vacant {
             border: 2px dashed #ccc;  /* Dashed border for vacant spaces */
             width: 100px;  /* Fixed width */
-            height: 100px;  /* Fixed height */
+            height: 100px;  /* Fixed height, matching rooms and hallways */
             text-align: center;  /* Center text */
-            padding-top: 40px;  /* Padding for character text */
-            background-color: white;
+            background-color: white;  /* White background */
+            position: relative;  /* Enable positioning for internal elements */
         }
         .info-message {
             color: blue;  /* Blue color for info messages */
