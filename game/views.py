@@ -3,9 +3,9 @@ from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth.models import User
 from django import forms
-from .models import Game, Player
-from channels.layers import get_channel_layer  # For WebSocket broadcasting
-from asgiref.sync import async_to_sync  # To run async tasks synchronously
+from .models import Game, Player  # Import Game model from models.py
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 # Custom form for user signup
 class SignupForm(forms.Form):
@@ -52,7 +52,7 @@ def select_character_view(request, game_id):
     print(f"Taken characters: {taken_characters}")  # Log taken characters
     all_characters = [
         'Miss Scarlet', 'Col. Mustard', 'Mrs. White',
-        'Mr. Green', 'Mrs. Peacock', 'Prof. Plum'
+        'Mr. Green', 'Mrs. Peacock', 'Prof. Plum'  # Added Mrs. Peacock
     ]  # List of all possible characters
     available_characters = [char for char in all_characters if char not in taken_characters]  # Filter available characters
     print(f"Available characters: {available_characters}")  # Log available characters

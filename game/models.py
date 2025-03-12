@@ -22,7 +22,7 @@ class Player(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)  # Foreign key to Django's User model, deletes player if user is deleted
     game = models.ForeignKey(Game, on_delete=models.CASCADE)  # Foreign key to Game model, deletes player if game is deleted
     character = models.CharField(max_length=20, null=True, blank=True)  # Player's character (e.g., "Miss Scarlet"), nullable
-    location = models.CharField(max_length=20, default='Hallway1')  # Current location on the board, updated default to Hallway1
+    location = models.CharField(max_length=20, null=True, blank=True)  # Current location on the board, nullable to rely on views.py
     cards = models.JSONField(default=list)  # List of cards held by the player, defaults to empty list
     has_moved = models.BooleanField(default=False)  # Tracks if player has made their first move
 
