@@ -71,7 +71,7 @@ def select_character_view(request, game_id):
                 'Miss Scarlet': 'Hallway2',  # Initial location for Miss Scarlet
                 'Col. Mustard': 'Hallway5',  # Initial location for Col. Mustard
                 'Mrs. White': 'Hallway12',  # Initial location for Mrs. White
-                'Mr. Green': 'Hallway6',  # Initial location for Mr. Green
+                'Mr. Green': 'Hallway11',  # Initial location for Mr. Green
                 'Mrs. Peacock': 'Hallway8',  # Initial location for Mrs. Peacock
                 'Prof. Plum': 'Hallway3'  # Initial location for Prof. Plum
             }  # Mapping of characters to initial locations with new hallway names
@@ -134,5 +134,6 @@ def game_view(request, game_id):
     players = Player.objects.filter(game=game).values('id', 'character', 'location', 'has_moved', 'user__username')  # Get all players' data
     return render(request, 'game/game.html', {
         'game_id': game_id,
-        'players': list(players)  # Pass players data to template
+        'players': list(players),  # Pass players data to template
+        'request': request  # Explicitly pass request to ensure context processors work
     })

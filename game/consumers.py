@@ -26,7 +26,7 @@ class GameConsumer(AsyncWebsocketConsumer):
     async def receive(self, text_data):
         try:
             logger.info(f"Received from {self.user.username}: {text_data}")  # Log incoming message
-            data = json.loads(text_data)  # Parse JSON data
+            data = json.loads(text_data)  # Parse JSON data into a Python dictionary
             if data['action'] == 'move':  # Handle move action
                 location = data['location']  # New location from client
                 player = self.user.username  # Current player's username
@@ -43,6 +43,8 @@ class GameConsumer(AsyncWebsocketConsumer):
                             self.game_group_name,
                             {'type': 'game_message', 'character': character, 'from': from_location, 'to': location}
                         )  # Broadcast move
+                        logger.info("Broadcasting updated player list after first move")  # Log broadcast
+                        await self.broadcast_player_list()  # Broadcast updated player list after move
                         await self.next_turn()  # Switch to next player
                     else:
                         await self.send(text_data=json.dumps({'error': f'First move must be from your initial location ({from_location}) to an adjacent location.'}))
@@ -53,6 +55,8 @@ class GameConsumer(AsyncWebsocketConsumer):
                             self.game_group_name,
                             {'type': 'game_message', 'character': character, 'from': from_location, 'to': location}
                         )  # Broadcast move
+                        logger.info("Broadcasting updated player list after subsequent move")  # Log broadcast
+                        await self.broadcast_player_list()  # Broadcast updated player list after move
                         await self.next_turn()  # Switch to next player
                     else:
                         await self.send(text_data=json.dumps({'error': f'Move to {location} not allowed'}))
@@ -165,7 +169,6 @@ class GameConsumer(AsyncWebsocketConsumer):
             self.game_group_name,
             {'type': 'player_list_message', 'player_list': players}  # Broadcast player list to all clients
         )  # Send updated player list to all connected clients
-
     @database_sync_to_async
     def get_player_by_id(self, player_id):
         return Player.objects.filter(id=player_id, game__game_id=self.game_id).values('id', 'character', 'location', 'has_moved', 'user__username').first()  # Get player by ID

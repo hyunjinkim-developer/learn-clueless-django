@@ -22,3 +22,5 @@ The development log is in progress. You can track updates [https://hyunjinkimdev
             You can see why it is needed and how it works on https://www.notion.so/hyunjinkimdeveloper/Clue-Less-1a421801a53980059dbcc9c29b1b382f#1a821801a53980b39c8ced3d368ff56d
             % python run_daphne.py
 
+## Messaging Protocols
+
