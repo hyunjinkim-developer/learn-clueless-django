@@ -1,111 +1,108 @@
 <!DOCTYPE html>
 <html>
+<style>
+    :root { /* Define a global CSS variable */
+        --room-hallway-name-font-size: 12px;
+    }
+    #game-board {
+        display: grid;  /* Use CSS Grid for board layout */
+        grid-template-columns: repeat(5, 1fr);  /* 5 columns with equal fractions */
+        gap: 5px;  /* Gap between grid cells */
+        justify-content: center;  /* Center the grid */
+        background-color: #fff;  /* White background */
+        padding: 10px;  /* Padding around the board */
+        border: 2px solid #000;  /* Black border */
+    }
+    .room, .hallway, .vacant {
+        border: 2px solid #000;  /* Unified border for all */
+        width: 100%;  /* Full width of the grid column */
+        aspect-ratio: 1;  /* Ensures height equals width for a square */
+        text-align: center;  /* Center text */
+        position: relative;  /* Enable positioning for internal elements */
+        box-sizing: border-box;  /* Include border and padding in the height/width calculation */
+    }
+    .room-characters span, .hallway-characters span {
+            white-space: nowrap;  /* Prevent character names from splitting across lines */
+            display: block;  /* Ensure each character name takes its own line */
+        }
+    .room {
+        background-color: lightpink;
+    }
+    .room-name {
+        font-size: var(--room-hallway-name-font-size);  /* Smaller font for room name */
+        font-weight: bold;  /* Bold text for emphasis */
+        padding: 5px 0;  /* Padding for spacing */
+        background-color: hotpink;
+    }
+    .room-characters {
+        font-size: 10px;  /* Smaller font for character list */
+        padding: 2px;  /* Padding for characters */
+        overflow-y: auto;  /* Enable scrolling if multiple characters */
+        white-space: pre-line;  /* Preserve newlines for line-by-line display */
+    }
+    .hallway {
+        background-color: lightcyan;
+    }
+    .hallway-name {
+        font-size: var(--room-hallway-name-font-size);  /* Smaller font for hallway name */
+        font-weight: bold;  /* Bold text for emphasis */
+        padding: 5px 0;  /* Padding for spacing */
+        background-color: lightskyblue;
+    }
+    .hallway-characters {
+        font-size: 10px;  /* Smaller font for character list */
+        padding: 2px;  /* Padding for characters */
+        overflow-y: auto;  /* Enable scrolling if needed */
+        white-space: pre-line;  /* Preserve newlines for line-by-line display */
+    }
+    .vacant {
+        background-color: white;  /* White background */
+    }
+    .info-message {
+        color: blue;  /* Blue color for info messages */
+        margin: 10px 0;  /* Margin for spacing */
+    }
+    .player-list {
+        margin-top: 20px;  /* Space above the list */
+        padding: 10px;  /* Padding inside the list */
+        border: 1px solid #ccc;  /* Light gray border */
+        background-color: #f9f9f9;  /* Light background */
+        max-width: 300px;  /* Maximum width to fit content */
+    }
+    .player-list h3 {
+        margin: 0 0 10px 0;  /* Margin for heading */
+        font-size: 1.2em;  /* Slightly larger font */
+    }
+    .player-list ul {
+        list-style-type: none;  /* No bullets */
+        padding: 0;  /* No padding */
+    }
+    .player-list li {
+        margin: 5px 0;  /* Spacing between list items */
+    }
+    #turn-notification {
+        margin: 10px 0;  /* Space around turn notification */
+        padding: 10px;  /* Padding inside */
+        border: 1px solid #ccc;  /* Light gray border */
+        background-color: #f9f9f9;  /* Light background */
+        text-align: center;  /* Center text */
+    }
+    /* CSS Animation for fading in the character */
+    @keyframes fadeMove {
+        0% {
+            opacity: 0;  /* Start fully transparent */
+            transform: scale(0.5);  /* Start smaller */
+        }
+        100% {
+            opacity: 1;  /* End fully visible */
+            transform: scale(1);  /* End at normal size */
+        }
+    }
+    .fade-move {
+        animation: fadeMove 0.5s ease-in-out;  /* Apply the fadeMove animation over 0.5s */
+    }
+</style>
 <head>
-    <style>
-        :root { /* Define a global CSS variable */
-            --room-hallway-name-font-size: 12px;
-        }
-        #game-board {
-            display: grid;  /* Use CSS Grid for board layout */
-            grid-template-columns: repeat(5, 100px);  /* 5 columns of 100px each */
-            gap: 5px;  /* Gap between grid cells */
-            justify-content: center;  /* Center the grid */
-            background-color: #fff;  /* White background */
-            padding: 10px;  /* Padding around the board */
-            border: 2px solid #000;  /* Black border */
-        }
-        .room {
-            border: 2px solid #000;  /* Black border for rooms */
-            width: 100px;  /* Fixed width */
-            height: 100px;  /* Fixed height */
-            text-align: center;  /* Center text */
-            background-color: #f0f0f0;  /* Light gray background */
-            position: relative;  /* Enable positioning for internal elements */
-        }
-        .room-name {
-            font-size: var(--room-hallway-name-font-size);  /* Smaller font for room name */
-            font-weight: bold;  /* Bold text for emphasis */
-            padding: 5px 0;  /* Padding for spacing */
-            background-color: #d0d0d0;  /* Slightly darker background for name */
-        }
-        .room-characters {
-            font-size: 10px;  /* Smaller font for character list */
-            padding: 2px;  /* Padding for characters */
-            overflow-y: auto;  /* Enable scrolling if multiple characters */
-            max-height: 60px;  /* Limit height to fit within room */
-        }
-        .hallway {
-            border: 2px solid #000;  /* Black border for hallways */
-            width: 100px;  /* Fixed width */
-            height: 100px;  /* Fixed height */
-            text-align: center;  /* Center text */
-            background-color: #e0e0e0;  /* Slightly darker gray */
-            position: relative;  /* Enable positioning for internal elements */
-        }
-        .hallway-name {
-            font-size: var(--room-hallway-name-font-size);  /* Smaller font for hallway name */
-            font-weight: bold;  /* Bold text for emphasis */
-            padding: 5px 0;  /* Padding for spacing */
-            background-color: #c0c0c0;  /* Slightly darker background for name */
-        }
-        .hallway-characters {
-            font-size: 10px;  /* Smaller font for character list */
-            padding: 2px;  /* Padding for characters */
-            overflow-y: auto;  /* Enable scrolling if needed */
-            max-height: 60px;  /* Limit height to fit within hallway */
-        }
-        .vacant {
-            border: 2px dashed #ccc;  /* Dashed border for vacant spaces */
-            width: 100px;  /* Fixed width */
-            height: 100px;  /* Fixed height, matching rooms and hallways */
-            text-align: center;  /* Center text */
-            background-color: white;  /* White background */
-            position: relative;  /* Enable positioning for internal elements */
-        }
-        .info-message {
-            color: blue;  /* Blue color for info messages */
-            margin: 10px 0;  /* Margin for spacing */
-        }
-        .player-list {
-            margin-top: 20px;  /* Space above the list */
-            padding: 10px;  /* Padding inside the list */
-            border: 1px solid #ccc;  /* Light gray border */
-            background-color: #f9f9f9;  /* Light background */
-            max-width: 300px;  /* Maximum width to fit content */
-        }
-        .player-list h3 {
-            margin: 0 0 10px 0;  /* Margin for heading */
-            font-size: 1.2em;  /* Slightly larger font */
-        }
-        .player-list ul {
-            list-style-type: none;  /* No bullets */
-            padding: 0;  /* No padding */
-        }
-        .player-list li {
-            margin: 5px 0;  /* Spacing between list items */
-        }
-        #turn-notification {
-            margin: 10px 0;  /* Space around turn notification */
-            padding: 10px;  /* Padding inside */
-            border: 1px solid #ccc;  /* Light gray border */
-            background-color: #f9f9f9;  /* Light background */
-            text-align: center;  /* Center text */
-        }
-        /* CSS Animation for fading in the character */
-        @keyframes fadeMove {
-            0% {
-                opacity: 0;  /* Start fully transparent */
-                transform: scale(0.5);  /* Start smaller */
-            }
-            100% {
-                opacity: 1;  /* End fully visible */
-                transform: scale(1);  /* End at normal size */
-            }
-        }
-        .fade-move {
-            animation: fadeMove 0.5s ease-in-out;  /* Apply the fadeMove animation over 0.5s */
-        }
-    </style>
 </head>
 <body>
     <h1>Clue-Less Game {{ game_id }}</h1>  <!-- Display game ID -->
@@ -284,6 +281,7 @@
                     charElement.classList.add('fade-move');  // Apply the animation
                 }
         }
+        setSquareDimensions();  // Update square dimensions after move
     }
 
     function updateRoomCharacters(players) {  // Update characters in rooms
@@ -291,25 +289,25 @@
         rooms.forEach(roomId => {
             const charElement = document.getElementById(`${roomId}-characters`);  // Get the characters div for the room
             if (charElement) {
-                const charactersInRoom = players.filter(player => player.location === roomId && player.character)
-                    .map(player => player.character)
-                    .join(', ');  // Get all characters in the room, joined by commas
-                charElement.innerHTML = charactersInRoom || '';  // Set the character list or empty if none
-            }
+                    const charactersInRoom = players.filter(player => player.location === roomId && player.character)
+                        .map(player => `<span>${player.character}</span>`)  // Wrap each character in a <span> to prevent splitting
+                        .join('');  // Join with empty string (newlines are handled by CSS)
+                    charElement.innerHTML = charactersInRoom || '';  // Set the character list or empty if none
+                }
         });
     }
 
     function updateHallwayCharacters(players) {  // Update characters in hallways
         const hallways = ['Hallway1', 'Hallway2', 'Hallway3', 'Hallway4', 'Hallway5', 'Hallway6', 'Hallway7', 'Hallway8', 'Hallway9', 'Hallway10', 'Hallway11', 'Hallway12'];
         hallways.forEach(hallwayId => {
-            const charElement = document.getElementById(`${hallwayId}-characters`);  // Get the characters div for the hallway
-            if (charElement) {
-                const charactersInHallway = players.filter(player => player.location === hallwayId && player.character)
-                    .map(player => player.character)
-                    .join(', ');  // Get all characters in the hallway, joined by commas
-                charElement.innerHTML = charactersInHallway || '';  // Set the character list or empty if none
-            }
-        });
+                const charElement = document.getElementById(`${hallwayId}-characters`);  // Get the characters div for the hallway
+                if (charElement) {
+                    const charactersInHallway = players.filter(player => player.location === hallwayId && player.character)
+                        .map(player => `<span>${player.character}</span>`)  // Wrap each character in a <span> to prevent splitting
+                        .join('');  // Join with empty string (newlines are handled by CSS)
+                    charElement.innerHTML = charactersInHallway || '';  // Set the character list or empty if none
+                }
+            });
     }
 
     function updatePlayerList(players) {  // Update the player list
@@ -321,6 +319,25 @@
                     li.textContent = `ID: ${player.id} | ${player.user__username}: ${player.character}`;  // Set text
                     playerList.appendChild(li);  // Add to list
                 }
+            });
+        }
+
+    function setSquareDimensions() {  // Set height to match width for square layout
+            const rooms = document.querySelectorAll('.room');
+            const hallways = document.querySelectorAll('.hallway');
+            const vacants = document.querySelectorAll('.vacant');
+            const allElements = [...rooms, ...hallways, ...vacants];
+            let maxWidth = 0;
+
+            allElements.forEach(element => {
+                const computedStyle = getComputedStyle(element);
+                const width = element.getBoundingClientRect().width;  // Get the actual rendered width
+                maxWidth = Math.max(maxWidth, width);  // Update maxWidth if this is wider
+            });
+
+            // Apply the maximum width as height to all elements for a square shape
+            allElements.forEach(element => {
+                element.style.height = `${maxWidth}px`;  // Set height to match width
             });
         }
 
